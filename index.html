@@ -1,1 +1,83 @@
-My Github Page
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <style>
+      body {
+        margin: 0px;
+        padding: 0px;
+      }
+    </style>
+  </head>
+  <body>
+  <canvas id="myCanvas" width="900" height="600" style="background-color: #BBCCFF;">
+	</canvas>
+	<script>
+      window.requestAnimFrame = (function(callback) {
+        return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame ||
+        function(callback) {
+          window.setTimeout(callback, 1000 / 60);
+        };
+      })();
+
+	  var END_FADE_OUT = 20;
+	  var START_FADE_OUT = 60;
+	  var END_FADE_IN = 840;
+	  var START_FADE_IN = 880;
+	  
+      function drawNote(myNote, context) {
+        context.beginPath();
+		context.save();
+		context.scale(1, 0.75);
+		context.globalAlpha = myNote.a;
+		context.arc(myNote.x, myNote.y, 15, 0 , 2 * Math.PI, false);
+        context.fillStyle = '#000000';
+        context.fill();
+		context.closePath();
+		context.restore();
+      }
+      function animate(myNote, canvas, context, startTime) {
+        // update
+        var time = (new Date()).getTime();
+
+        var linearSpeed = 200;
+        // pixels / second
+        var newX = linearSpeed * (time - startTime) / 1000;
+
+        myNote.x = myNote.x - newX;
+		
+		if(myNote.x <= 0)
+		{
+			myNote.x = myNote.x + 900;
+		}
+		
+		 myNote.a = (myNote.x <= START_FADE_OUT ? Math.max((END_FADE_OUT - myNote.x) / (END_FADE_OUT - START_FADE_OUT), 0) :
+			(myNote.x >= END_FADE_IN ? Math.max((START_FADE_IN - myNote.x) / (START_FADE_IN - END_FADE_IN), 0) : 1));
+		
+		startTime = time;
+
+        // clear
+        context.clearRect(0, 0, canvas.width, canvas.height);
+
+        drawNote(myNote, context);
+
+        // request new frame
+        requestAnimFrame(function() {
+          animate(myNote, canvas, context, startTime);
+        });
+      }
+      var canvas = document.getElementById('myCanvas');
+      var context = canvas.getContext('2d');
+
+      var myNote = {
+        x: 900,
+        y: 50,
+		type: "QN",
+		a: 0.5
+      };
+
+      // wait one second before starting animation
+      var startTime = (new Date()).getTime();
+      animate(myNote, canvas, context, startTime);
+    </script>
+  </body>
+</html>
