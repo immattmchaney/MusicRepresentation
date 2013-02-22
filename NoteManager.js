@@ -19,15 +19,15 @@ NoteM.Const.StartFromTop = 0.25;
 
 //Doing colors for the gradient for the lines!
 NoteM.Colors = {};
-NoteM.Colors.MeasureBar = context.createLinearGradient(NoteM.Const.EndFadeOut, 20, NoteM.Const.StartFadeIn, 20);
+NoteM.Colors.StaffBar = context.createLinearGradient(NoteM.Const.EndFadeOut, 20, NoteM.Const.StartFadeIn, 20);
 // light blue-
-NoteM.Colors.MeasureBar.addColorStop(0, 'rgba(0,0,0,0)');   
+NoteM.Colors.StaffBar.addColorStop(0, 'rgba(0,0,0,0)');   
 // dark blue
-NoteM.Colors.MeasureBar.addColorStop((NoteM.Const.StartFadeOut - NoteM.Const.EndFadeOut) / (NoteM.Const.StartFadeIn - NoteM.Const.EndFadeOut), 'rgba(0,0,0,256)');
+NoteM.Colors.StaffBar.addColorStop((NoteM.Const.StartFadeOut - NoteM.Const.EndFadeOut) / (NoteM.Const.StartFadeIn - NoteM.Const.EndFadeOut), 'rgba(0,0,0,256)');
 // dark blue
-NoteM.Colors.MeasureBar.addColorStop((NoteM.Const.EndFadeIn - NoteM.Const.EndFadeOut) / (NoteM.Const.StartFadeIn - NoteM.Const.EndFadeOut), 'rgba(0,0,0,256)');
+NoteM.Colors.StaffBar.addColorStop((NoteM.Const.EndFadeIn - NoteM.Const.EndFadeOut) / (NoteM.Const.StartFadeIn - NoteM.Const.EndFadeOut), 'rgba(0,0,0,256)');
 // light blue
-NoteM.Colors.MeasureBar.addColorStop(1, 'rgba(0,0,0,0)');   
+NoteM.Colors.StaffBar.addColorStop(1, 'rgba(0,0,0,0)');   
 
 
 window.requestAnimFrame = (function(callback) {
@@ -82,22 +82,17 @@ NoteM.Drawables.IDrawable.prototype.update = function() {
 	alert(this.constructor + "'s update function is not initialized!");
 };
 
-NoteM.Drawables.MeasureBars = function () {
-};
-
-NoteM.Drawables.MeasureBars.prototype = new NoteM.Drawables.IDrawable();
-
-NoteM.Drawables.MeasureBar = function (newY) {
+NoteM.Drawables.StaffBar = function (newY) {
 	this.y = newY;
 };
 
-NoteM.Drawables.MeasureBar.prototype.draw = function(context) {
-	context.fillStyle = NoteM.Colors.MeasureBar;
+NoteM.Drawables.StaffBar.prototype.draw = function(context) {
+	context.fillStyle = NoteM.Colors.StaffBar;
 	
 	context.fillRect(NoteM.Const.EndFadeOut, this.y, NoteM.Const.StartFadeIn - NoteM.Const.EndFadeOut, NoteM.Const.LineWidth);
 }
 
-NoteM.Drawables.MeasureBar.prototype.update = function() {
+NoteM.Drawables.StaffBar.prototype.update = function() {
 }
 
 NoteM.Drawables.Note = function () {
@@ -144,7 +139,7 @@ var myBars = [];
 
 for(var j = 0; j < 5; j++)
 {
-	myBars.push(new NoteM.Drawables.MeasureBar(20 + j * (NoteM.Const.LineSpacing + NoteM.Const.LineWidth)));
+	myBars.push(new NoteM.Drawables.StaffBar(20 + j * (NoteM.Const.LineSpacing + NoteM.Const.LineWidth)));
 }
 
 // wait one second before starting animation
