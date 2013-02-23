@@ -13,11 +13,13 @@ NoteM.Const.BPM = 200; //Currently has nothing to do with actual BPM
 NoteM.Const.NoteWidth = 10;
 NoteM.Const.NoteHeightToWidth = 0.75;
 NoteM.Const.NoteRotation = -.25; //radians
-NoteM.Const.ExtraTopMeasureBar = 10;
+NoteM.Const.ExtraTopMeasureBar = 0;
+NoteM.Const.TopBar = 20;
+NoteM.Const.TopNote = "F5"; //note of top bar
 
 NoteM.Const.LineWidth = 2;
-NoteM.Const.LineSpacing = 15;
-NoteM.Const.StartFromTop = 0.25;
+NoteM.Const.LineSpacing = 16;
+NoteM.Const.StartFromTop = 0.20;
 
 //Doing colors for the gradient for the lines!
 NoteM.Colors = {};
@@ -57,15 +59,15 @@ function animate(myNotes, myBars, canvas, context, startTime) {
 	// clear
 	context.clearRect(0, 0, canvas.width, canvas.height);
 
-	for(var i = 0; i < myNotes.length; i++)
-		myNotes[i].draw(context);
-
 	for(var i = 0; i < myBars.length; i++)
 		myBars[i].draw(context);
 		
 	for(var i = 0; i < myMeasures.length; i++)
 		myMeasures[i].draw(context);
 	
+	for(var i = 0; i < myNotes.length; i++)
+		myNotes[i].draw(context);
+		
 	// request new frame
 	requestAnimFrame(function() {
 		animate(myNotes, myBars, canvas, context, startTime);
@@ -118,8 +120,7 @@ NoteM.Drawables.MeasureBar.prototype = new NoteM.Drawables.RhythmicDrawable();
 
 NoteM.Drawables.MeasureBar.prototype.draw = function(context) {
 	context.fillStyle = NoteM.Colors.StaffBar;
-	//NoteM.Const.ExtraTopMeasureBar
-	context.fillRect(this.x -(NoteM.Const.LineWidth) / 2, 20 - NoteM.Const.ExtraTopMeasureBar, NoteM.Const.LineWidth, 80 + 2 * NoteM.Const.ExtraTopMeasureBar);
+	context.fillRect(this.x -(NoteM.Const.LineWidth) / 2, NoteM.Const.TopBar - NoteM.Const.ExtraTopMeasureBar, NoteM.Const.LineWidth, 4 * NoteM.Const.LineSpacing + 2 * NoteM.Const.ExtraTopMeasureBar);
 }
 
 NoteM.Drawables.StaffBar = function (newY) {
@@ -131,11 +132,52 @@ NoteM.Drawables.StaffBar.prototype = new NoteM.Drawables.IDrawable();
 NoteM.Drawables.StaffBar.prototype.draw = function(context) {
 	context.fillStyle = NoteM.Colors.StaffBar;
 	
-	context.fillRect(NoteM.Const.EndFadeOut, this.y, NoteM.Const.StartFadeIn - NoteM.Const.EndFadeOut, NoteM.Const.LineWidth);
+	context.fillRect(NoteM.Const.EndFadeOut, this.y - NoteM.Const.LineWidth / 2, NoteM.Const.StartFadeIn - NoteM.Const.EndFadeOut, NoteM.Const.LineWidth);
 }
 
-NoteM.Drawables.Note = function () {
-	this.type = "C5";
+NoteM.Const.Notes = ['A','B','C','D','E','F','G'];
+
+NoteM.Drawables.Note = function (newType) {
+	this.type = newType.toUpperCase();
+	
+	//Find the location of the note via the current note
+	this.y = NoteM.getRelativeNote(this.type);
+	
+	//if(this.type.length == 3)
+	//{
+		//createAccidental(note, octave, x);
+	//}
+};
+
+NoteM.getRelativeNote = function (str) {
+//will not work with notes like C10 or B-1
+	var note, octave;
+	note = str.charAt(0);
+	octave = parseInt(str.charAt(str.length - 1));
+	
+	refNote = NoteM.Const.TopNote.charAt(0);
+	refOct = parseInt(NoteM.Const.TopNote.charAt(1));
+	
+	var noteCount = 0;
+	
+	while(refOct > octave)
+	{
+		octave++;
+		noteCount += 8;
+	}
+	
+	while(refOct < octave)
+	{
+		octave--;
+		noteCount -= 8;
+	}
+	
+	var ind = NoteM.Const.Notes.indexOf(note);
+	var refInd = NoteM.Const.Notes.indexOf(refNote);
+	
+	noteCount -= (ind - refInd);
+	
+	return NoteM.Const.TopBar + noteCount / 2 * NoteM.Const.LineSpacing;
 };
 
 NoteM.Drawables.Note.prototype = new NoteM.Drawables.RhythmicDrawable();
@@ -147,7 +189,7 @@ NoteM.Drawables.Note.prototype.draw = function(context) {
 	context.rotate(NoteM.Const.NoteRotation);
 	context.scale(1, NoteM.Const.NoteHeightToWidth);
 	context.globalAlpha = this.a;
-	context.arc(NoteM.Const.NoteWidth / -2, NoteM.Const.NoteWidth / -2, NoteM.Const.NoteWidth, 0 , 2 * Math.PI, false);
+	context.arc(0, 0, NoteM.Const.NoteWidth, 0 , 2 * Math.PI, false);
 	context.fillStyle = '#000000';
 	context.fill();
 	context.closePath();
@@ -179,8 +221,9 @@ function doKeyDown(e) {
 
 var myNotes = [];
 
-myNotes.push(new NoteM.Drawables.Note());
-myNotes[0].y = 250;
+myNotes.push(new NoteM.Drawables.Note("C5"));
+myNotes.push(new NoteM.Drawables.Note("F5"));
+myNotes.push(new NoteM.Drawables.Note("C4"));
 
 
 var myMeasures = [];
@@ -191,7 +234,7 @@ var myBars = [];
 
 for(var j = 0; j < 5; j++)
 {
-	myBars.push(new NoteM.Drawables.StaffBar(20 + j * (NoteM.Const.LineSpacing + NoteM.Const.LineWidth)));
+	myBars.push(new NoteM.Drawables.StaffBar(NoteM.Const.TopBar + j * NoteM.Const.LineSpacing));
 }
 
 // wait one second before starting animation
