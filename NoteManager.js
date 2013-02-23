@@ -10,8 +10,10 @@ NoteM.Const.StartFadeOut = 60;
 NoteM.Const.EndFadeIn = 840;
 NoteM.Const.StartFadeIn = 880;
 NoteM.Const.BPM = 200; //Currently has nothing to do with actual BPM
-NoteM.Const.NoteWidth = 15;
+NoteM.Const.NoteWidth = 10;
 NoteM.Const.NoteHeightToWidth = 0.75;
+NoteM.Const.NoteRotation = -.25; //radians
+NoteM.Const.ExtraTopMeasureBar = 10;
 
 NoteM.Const.LineWidth = 2;
 NoteM.Const.LineSpacing = 15;
@@ -46,6 +48,9 @@ function animate(myNotes, myBars, canvas, context, startTime) {
 	
 	for(var i = 0; i < myNotes.length; i++)
 		myNotes[i].update(elapsedTime);
+		
+	for(var i = 0; i < myMeasures.length; i++)
+		myMeasures[i].update(elapsedTime);
 	
 	startTime = time;
 
@@ -57,6 +62,9 @@ function animate(myNotes, myBars, canvas, context, startTime) {
 
 	for(var i = 0; i < myBars.length; i++)
 		myBars[i].draw(context);
+		
+	for(var i = 0; i < myMeasures.length; i++)
+		myMeasures[i].draw(context);
 	
 	// request new frame
 	requestAnimFrame(function() {
@@ -82,38 +90,11 @@ NoteM.Drawables.IDrawable.prototype.update = function() {
 	alert(this.constructor + "'s update function is not initialized!");
 };
 
-NoteM.Drawables.StaffBar = function (newY) {
-	this.y = newY;
-};
+NoteM.Drawables.RhythmicDrawable = function () {};
 
-NoteM.Drawables.StaffBar.prototype.draw = function(context) {
-	context.fillStyle = NoteM.Colors.StaffBar;
-	
-	context.fillRect(NoteM.Const.EndFadeOut, this.y, NoteM.Const.StartFadeIn - NoteM.Const.EndFadeOut, NoteM.Const.LineWidth);
-}
+NoteM.Drawables.RhythmicDrawable.prototype = new NoteM.Drawables.IDrawable();
 
-NoteM.Drawables.StaffBar.prototype.update = function() {
-}
-
-NoteM.Drawables.Note = function () {
-	this.type = "C5";
-};
-
-NoteM.Drawables.Note.prototype = new NoteM.Drawables.IDrawable();
-
-NoteM.Drawables.Note.prototype.draw = function(context) {
-	context.beginPath();
-	context.save();
-	context.scale(1, NoteM.Const.NoteHeightToWidth);
-	context.globalAlpha = this.a;
-	context.arc(this.x, this.y, NoteM.Const.NoteWidth, 0 , 2 * Math.PI, false);
-	context.fillStyle = '#000000';
-	context.fill();
-	context.closePath();
-	context.restore();
-};
-
-NoteM.Drawables.Note.prototype.update  = function(elapsedTime) {
+NoteM.Drawables.RhythmicDrawable.prototype.update = function(elapsedTime) {
 	// pixels / second
 	var newX = NoteM.Const.BPM * (elapsedTime) / 1000;
 
@@ -129,11 +110,82 @@ NoteM.Drawables.Note.prototype.update  = function(elapsedTime) {
 
 };
 
+NoteM.Drawables.MeasureBar = function (newX) {
+	this.x = newX;
+} 
+
+NoteM.Drawables.MeasureBar.prototype = new NoteM.Drawables.RhythmicDrawable();
+
+NoteM.Drawables.MeasureBar.prototype.draw = function(context) {
+	context.fillStyle = NoteM.Colors.StaffBar;
+	//NoteM.Const.ExtraTopMeasureBar
+	context.fillRect(this.x -(NoteM.Const.LineWidth) / 2, 20 - NoteM.Const.ExtraTopMeasureBar, NoteM.Const.LineWidth, 80 + 2 * NoteM.Const.ExtraTopMeasureBar);
+}
+
+NoteM.Drawables.StaffBar = function (newY) {
+	this.y = newY;
+};
+
+NoteM.Drawables.StaffBar.prototype = new NoteM.Drawables.IDrawable();
+
+NoteM.Drawables.StaffBar.prototype.draw = function(context) {
+	context.fillStyle = NoteM.Colors.StaffBar;
+	
+	context.fillRect(NoteM.Const.EndFadeOut, this.y, NoteM.Const.StartFadeIn - NoteM.Const.EndFadeOut, NoteM.Const.LineWidth);
+}
+
+NoteM.Drawables.Note = function () {
+	this.type = "C5";
+};
+
+NoteM.Drawables.Note.prototype = new NoteM.Drawables.RhythmicDrawable();
+
+NoteM.Drawables.Note.prototype.draw = function(context) {
+	context.beginPath();
+	context.save();
+	context.translate(this.x, this.y);
+	context.rotate(NoteM.Const.NoteRotation);
+	context.scale(1, NoteM.Const.NoteHeightToWidth);
+	context.globalAlpha = this.a;
+	context.arc(NoteM.Const.NoteWidth / -2, NoteM.Const.NoteWidth / -2, NoteM.Const.NoteWidth, 0 , 2 * Math.PI, false);
+	context.fillStyle = '#000000';
+	context.fill();
+	context.closePath();
+	context.restore();
+};
+
+
+
+
+
+canvas.addEventListener( "keydown", doKeyDown, true);
+
+
+function doKeyDown(e) {
+//left - 37, right - 39
+	if (e.keyCode == 37) {
+		NoteM.Const.BPM -= 4;
+	}
+	if (e.keyCode == 39) {
+		NoteM.Const.BPM += 4;
+	}
+
+}
+
+
+
+
+
+
 var myNotes = [];
 
 myNotes.push(new NoteM.Drawables.Note());
-myNotes[0].y = 50;
+myNotes[0].y = 250;
 
+
+var myMeasures = [];
+
+myMeasures.push(new NoteM.Drawables.MeasureBar(300));
 
 var myBars = [];
 
