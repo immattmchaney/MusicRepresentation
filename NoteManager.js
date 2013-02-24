@@ -14,12 +14,13 @@ NoteM.Const.NoteWidth = 10;
 NoteM.Const.NoteHeightToWidth = 0.75;
 NoteM.Const.NoteRotation = -.25; //radians
 NoteM.Const.ExtraTopMeasureBar = 0;
-NoteM.Const.TopBar = 20;
+NoteM.Const.TopBar = 100;
 NoteM.Const.TopNote = "F5"; //note of top bar
 
 NoteM.Const.LineWidth = 2;
 NoteM.Const.LineSpacing = 16;
 NoteM.Const.StartFromTop = 0.20;
+NoteM.Const.ExtraLedgerLineLength = 10;
 
 //Doing colors for the gradient for the lines!
 NoteM.Colors = {};
@@ -33,6 +34,7 @@ NoteM.Colors.StaffBar.addColorStop((NoteM.Const.EndFadeIn - NoteM.Const.EndFadeO
 // light blue
 NoteM.Colors.StaffBar.addColorStop(1, 'rgba(0,0,0,0)');   
 
+var myLedgers = [];
 
 window.requestAnimFrame = (function(callback) {
 	return window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame ||
@@ -53,6 +55,9 @@ function animate(myNotes, myBars, canvas, context, startTime) {
 		
 	for(var i = 0; i < myMeasures.length; i++)
 		myMeasures[i].update(elapsedTime);
+		
+	for(var i = 0; i < myLedgers.length; i++)
+		myLedgers[i].update(elapsedTime);
 	
 	startTime = time;
 
@@ -67,6 +72,9 @@ function animate(myNotes, myBars, canvas, context, startTime) {
 	
 	for(var i = 0; i < myNotes.length; i++)
 		myNotes[i].draw(context);
+	
+	for(var i = 0; i < myLedgers.length; i++)
+		myLedgers[i].draw(context);
 		
 	// request new frame
 	requestAnimFrame(function() {
@@ -83,6 +91,7 @@ NoteM.Drawables.IDrawable = function () {};
 NoteM.Drawables.IDrawable.prototype.x = 0;
 NoteM.Drawables.IDrawable.prototype.y = 0;
 NoteM.Drawables.IDrawable.prototype.a = 1;
+NoteM.Drawables.IDrawable.prototype.active = true;
 
 NoteM.Drawables.IDrawable.prototype.draw = function() {
 	alert(this.constructor + "'s draw function is not initialized!");
@@ -123,6 +132,21 @@ NoteM.Drawables.MeasureBar.prototype.draw = function(context) {
 	context.fillRect(this.x -(NoteM.Const.LineWidth) / 2, NoteM.Const.TopBar - NoteM.Const.ExtraTopMeasureBar, NoteM.Const.LineWidth, 4 * NoteM.Const.LineSpacing + 2 * NoteM.Const.ExtraTopMeasureBar);
 }
 
+NoteM.Drawables.LedgerLine = function (newX, newY) {
+	this.x = newX;
+	this.y = newY;
+}
+
+NoteM.Drawables.LedgerLine.prototype = new NoteM.Drawables.RhythmicDrawable();
+
+NoteM.Drawables.LedgerLine.prototype.draw = function(context) {
+	context.save();
+	context.globalAlpha = this.a;
+	context.fillStyle = '#000000';
+	context.fillRect(this.x - NoteM.Const.NoteWidth / 2 - NoteM.Const.ExtraLedgerLineLength, this.y - NoteM.Const.LineWidth / 2, NoteM.Const.NoteWidth + 2 * NoteM.Const.ExtraLedgerLineLength, NoteM.Const.LineWidth);
+	context.restore();
+}
+
 NoteM.Drawables.StaffBar = function (newY) {
 	this.y = newY;
 };
@@ -143,10 +167,66 @@ NoteM.Drawables.Note = function (newType) {
 	//Find the location of the note via the current note
 	this.y = NoteM.getRelativeNote(this.type);
 	
+	NoteM.createLedgerLines(this.x, this.type);
+	
 	//if(this.type.length == 3)
 	//{
 		//createAccidental(note, octave, x);
 	//}
+};
+
+NoteM.createLedgerLines = function (x, str) {
+	//Note: 2 notes that need ledger lines will both double up on shared
+	//ledger lines. Could be optimized better
+
+	//Can turn this following bit into function, notesBelowTopLine
+	var note, octave;
+	note = str.charAt(0);
+	octave = parseInt(str.charAt(str.length - 1));
+	
+	refNote = NoteM.Const.TopNote.charAt(0);
+	refOct = parseInt(NoteM.Const.TopNote.charAt(1));
+	
+	var noteCount = 0;
+	
+	while(refOct > octave)
+	{
+		octave++;
+		noteCount += 7;
+	}
+	
+	while(refOct < octave)
+	{
+		octave--;
+		noteCount -= 7;
+	}
+	
+	var ind = NoteM.Const.Notes.indexOf(note);
+	var refInd = NoteM.Const.Notes.indexOf(refNote);
+	
+	noteCount -= (ind - refInd);
+	
+	if(noteCount > 0)
+	{
+		var noteIndex = 10; //Any number above this is ledger line qual.
+		
+		while(noteIndex <= noteCount)
+		{
+			var y = NoteM.Const.TopBar + noteIndex / 2 * NoteM.Const.LineSpacing;
+			myLedgers.push(new NoteM.Drawables.LedgerLine(x, y));
+			noteIndex += 2;
+		}
+	}
+	else
+	{
+		var noteIndex = -2; //Any number above this is ledger line qual.
+		while(noteIndex >= noteCount)
+		{
+			var y = NoteM.Const.TopBar + noteIndex / 2 * NoteM.Const.LineSpacing;
+			myLedgers.push(new NoteM.Drawables.LedgerLine(x, y));
+			noteIndex -= 2;
+		}
+	}
 };
 
 NoteM.getRelativeNote = function (str) {
@@ -163,13 +243,13 @@ NoteM.getRelativeNote = function (str) {
 	while(refOct > octave)
 	{
 		octave++;
-		noteCount += 8;
+		noteCount += 7;
 	}
 	
 	while(refOct < octave)
 	{
 		octave--;
-		noteCount -= 8;
+		noteCount -= 7;
 	}
 	
 	var ind = NoteM.Const.Notes.indexOf(note);
@@ -223,7 +303,8 @@ var myNotes = [];
 
 myNotes.push(new NoteM.Drawables.Note("C5"));
 myNotes.push(new NoteM.Drawables.Note("F5"));
-myNotes.push(new NoteM.Drawables.Note("C4"));
+//myNotes.push(new NoteM.Drawables.Note("F3"));
+//myNotes.push(new NoteM.Drawables.Note("D6"));
 
 
 var myMeasures = [];
