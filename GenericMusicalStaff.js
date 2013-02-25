@@ -81,8 +81,7 @@ if(typeof(GenericMusicalStaffInterface) == 'undefined')
 		
 		this.ClearNotes = function() {
 			//Is there a clear function?
-			while(myNotes.length > 0)
-				myNotes.pop();
+			myNotes.length = 0;
 			_redraw = true;
 		};
 		
