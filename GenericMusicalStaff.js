@@ -23,6 +23,9 @@ if(typeof(GenericMusicalStaffInterface) == 'undefined')
 		var _redraw = true;
 		var _update = true;
 		
+		//Drag vars
+		var _dragX = 0;
+		
 		var _currLoc = 0;
 		
 		this.Forward = function() {
@@ -152,6 +155,37 @@ if(typeof(GenericMusicalStaffInterface) == 'undefined')
 			
 			_redraw = true;
 		};
+		
+		
+		//Dragging code
+		function drag(e){
+			_currLoc += e.pageX - _dragX;
+			_dragX = e.pageX;
+			
+			_redraw = true;
+		}
+		
+		function onDown(e){
+			event.preventDefault();
+			
+			_dragX = e.pageX;
+			
+			canvas.onmousemove = drag;
+		}
+
+		function onUp(){
+			canvas.onmousemove = null;
+		}
+
+		function onOut(){
+			canvas.onmousemove = null;
+		}
+		
+		canvas.onmousedown = onDown;
+		canvas.onmouseup = onUp;
+		canvas.onmouseout = onOut;
+		
+		
 		
 		// wait one second before starting animation
 		var lastTime = (new Date()).getTime();
