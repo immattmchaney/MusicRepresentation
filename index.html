@@ -9,31 +9,32 @@
     </style>
   </head>
   <body>
-	<canvas id="myCanvas" tabindex="1" width="900" height="600" style="background-color: #BBCCFF;">
-	</canvas>
 	<script type="text/javascript" src="GenericMusicalStaff.js"></script>
-	<script>var gms = new GenericMusicalStaff("myCanvas"); gms.testInit(); gms.Play();
+	Testing some thing. This should be first...<br>
+	<canvas id="myCanvas" height="600" width="900" tabindex="1"></canvas>
+	<script>var gms = new GenericMusicalStaff("myCanvas", 900, 600); gms.testInit();
 	
-	
-	var dcanvas = document.getElementById("myCanvas");
-	dcanvas.addEventListener( "keydown", doKeyDown, true);
+	gms.GetCanvas().addEventListener( "keydown", doKeyDown, true);
 	
 	function doKeyDown(e) {
 	//left - 37, right - 39
 		if (e.keyCode == 37) {
-			gms.Play();
+			gms.Forward();
 		}
 		if (e.keyCode == 38) {
 			gms.AddTestNote();
 		}
 		if (e.keyCode == 39) {
-			gms.Stop();
+			gms.Backward();
 		}
 		if (e.keyCode == 40) {
 			gms.ClearNotes();
 		}
 	}
-	
+	</script>
+	<br>...and this should be second.<br>
+	<script>
+	var gms2 = new GenericMusicalStaff("myCanvas2", 900, 600); gms2.testInit();
 	</script>
   </body>
 </html>
