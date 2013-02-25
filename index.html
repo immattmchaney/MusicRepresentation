@@ -11,6 +11,29 @@
   <body>
 	<canvas id="myCanvas" tabindex="1" width="900" height="600" style="background-color: #BBCCFF;">
 	</canvas>
-	<script type="text/javascript" src="NoteManager.js"></script>
+	<script type="text/javascript" src="GenericMusicalStaff.js"></script>
+	<script>var gms = new GenericMusicalStaff("myCanvas"); gms.testInit(); gms.Play();
+	
+	
+	var dcanvas = document.getElementById("myCanvas");
+	dcanvas.addEventListener( "keydown", doKeyDown, true);
+	
+	function doKeyDown(e) {
+	//left - 37, right - 39
+		if (e.keyCode == 37) {
+			gms.Play();
+		}
+		if (e.keyCode == 38) {
+			gms.AddTestNote();
+		}
+		if (e.keyCode == 39) {
+			gms.Stop();
+		}
+		if (e.keyCode == 40) {
+			gms.ClearNotes();
+		}
+	}
+	
+	</script>
   </body>
 </html>
