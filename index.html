@@ -10,12 +10,11 @@
   </head>
   <body>
 	<script type="text/javascript" src="GenericMusicalStaff.js"></script>
-	Testing some thing. This should be first...
+	Testing some thing. This should be first...<br>
+	<canvas id="myCanvas" height="600" width="900" tabindex="1"></canvas>
 	<script>var gms = new GenericMusicalStaff("myCanvas", 900, 600); gms.testInit();
 	
-	
-	var dcanvas = document.getElementById("myCanvas");
-	dcanvas.addEventListener( "keydown", doKeyDown, true);
+	gms.GetCanvas().addEventListener( "keydown", doKeyDown, true);
 	
 	function doKeyDown(e) {
 	//left - 37, right - 39
@@ -33,6 +32,9 @@
 		}
 	}
 	</script>
-	<br>...and this should be second.
+	<br>...and this should be second.<br>
+	<script>
+	var gms2 = new GenericMusicalStaff("myCanvas2", 900, 600); gms2.testInit();
+	</script>
   </body>
 </html>

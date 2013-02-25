@@ -168,6 +168,8 @@ if(typeof(GenericMusicalStaffInterface) == 'undefined')
 		function onDown(e){
 			event.preventDefault();
 			
+			canvas.focus();
+			
 			_dragX = e.pageX;
 			
 			canvas.onmousemove = drag;
@@ -185,7 +187,9 @@ if(typeof(GenericMusicalStaffInterface) == 'undefined')
 		canvas.onmouseup = onUp;
 		canvas.onmouseout = onOut;
 		
-		
+		this.GetCanvas = function() {
+			return canvas;
+		};
 		
 		// wait one second before starting animation
 		var lastTime = (new Date()).getTime();
