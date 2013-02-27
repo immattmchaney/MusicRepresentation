@@ -25,7 +25,7 @@ if(typeof(GenericMusicalStaffInterface) == 'undefined')
 		
 		//Drag vars
 		var _dragX = 0;
-		
+		var _totalMeasures = 10;
 		var _currLoc = 0;
 		
 		this.Forward = function() {
@@ -64,6 +64,28 @@ if(typeof(GenericMusicalStaffInterface) == 'undefined')
 		var testNums1 = 0;
 		var testNums2 = 4;
 		
+		this.SetStaffLines = function() {
+			for(var j = 0; j < 5; j++)
+			{
+				myBars.push(new GenericMusicalStaffInterface.Drawables.StaffBar(GenericMusicalStaffInterface.Var.TopBar + j * GenericMusicalStaffInterface.Var.LineSpacing));
+			}
+		};
+		
+		this.ClearMeasures = function() {
+			_totalMeasures = 0;
+			myMeasures.length = 0;
+		};
+		
+		this.SetMeasures = function(count) {
+			this.ClearMeasures();
+			this.SetStaffLines();
+			_totalMeasures = count;
+			for(var i = 0; i <= count; i++)
+			{
+				myMeasures.push(new GenericMusicalStaffInterface.Drawables.MeasureBar(i * GenericMusicalStaffInterface.Var.MeasureWidth));
+			}
+		};
+		
 		this.AddTestNote = function() {
 			//generate between G5 and A4
 			
@@ -101,8 +123,13 @@ if(typeof(GenericMusicalStaffInterface) == 'undefined')
 				
 				context.save();
 				
+				//Constrain currLoc
+				if(_currLoc < 0) _currLoc = 0;
+				if(_currLoc > _totalMeasures * GenericMusicalStaffInterface.Var.MeasureWidth)
+					_currLoc = _totalMeasures * GenericMusicalStaffInterface.Var.MeasureWidth;
+				
 				//Update Camera
-				context.translate(_currLoc,0);
+				context.translate(GenericMusicalStaffInterface.Var.CurrLocOffset-_currLoc,0);
 				
 				//Draw
 				for(var i = 0; i < myMeasures.length; i++)
@@ -143,14 +170,10 @@ if(typeof(GenericMusicalStaffInterface) == 'undefined')
 			//myNotes.push(new GenericMusicalStaffInterface.Drawables.Note("F3"));
 			//myNotes.push(new GenericMusicalStaffInterface.Drawables.Note("D6"));
 
+			SetStaffLines();
 
 			myMeasures.push(new GenericMusicalStaffInterface.Drawables.MeasureBar(300));
 
-
-			for(var j = 0; j < 5; j++)
-			{
-				myBars.push(new GenericMusicalStaffInterface.Drawables.StaffBar(GenericMusicalStaffInterface.Var.TopBar + j * GenericMusicalStaffInterface.Var.LineSpacing));
-			}
 			
 			_redraw = true;
 		};
@@ -158,7 +181,7 @@ if(typeof(GenericMusicalStaffInterface) == 'undefined')
 		
 		//Dragging code
 		function drag(e){
-			_currLoc += e.pageX - _dragX;
+			_currLoc -= e.pageX - _dragX;
 			_dragX = e.pageX;
 			
 			_redraw = true;
@@ -215,6 +238,7 @@ if(typeof(GenericMusicalStaffInterface) == 'undefined')
 	GenericMusicalStaffInterface.Var.ExtraTopMeasureBar = 10;
 	GenericMusicalStaffInterface.Var.TopBar = 100;
 	GenericMusicalStaffInterface.Var.TopNote = "F5"; //note of top bar
+	GenericMusicalStaffInterface.Var.MeasureWidth = 200;
 
 	GenericMusicalStaffInterface.Var.LineWidth = 2;
 	GenericMusicalStaffInterface.Var.LineSpacing = 16;
