@@ -12,23 +12,48 @@
 	<script type="text/javascript" src="GenericMusicalStaff.js"></script>
 	Testing some thing. This should be first...<br>
 	<canvas id="myCanvas" height="600" width="900" tabindex="1"></canvas>
-	<script>var gms = new GenericMusicalStaff("myCanvas", 900, 600); gms.SetMeasures(5);gms.AddTestNote();
+	<script>var gms = new GenericMusicalStaff("myCanvas", 900, 600);
+	gms.SetMeasures(5);
+	gms.AddNote("C4",1,1);
+	gms.AddNote("E4",1,2);
+	gms.AddNote("G4",1,3);
+	gms.AddNote("C4",1,4);
+	gms.AddNote("D4",2,1);
+	gms.AddNote("F4",2,2);
+	gms.AddNote("A5",2,3);
+	gms.AddNote("D4",2,4);
+	gms.AddNote("E4",3,1);
+	gms.AddNote("G4",3,2);
+	gms.AddNote("B5",3,3);
+	gms.AddNote("E4",3,4);
+	gms.AddNote("F4",4,1);
+	gms.AddNote("A5",4,2);
+	gms.AddNote("C5",4,3);
+	gms.AddNote("F4",4,4);
+	gms.AddNote("G4",5,1);
+	gms.AddNote("B5",5,2);
+	gms.AddNote("D5",5,3);
+	gms.AddNote("G4",5,4);
 	
 	gms.GetCanvas().addEventListener( "keydown", doKeyDown, true);
 	
 	function doKeyDown(e) {
 	//left - 37, right - 39
 		if (e.keyCode == 37) {
-			gms.Forward();
+			event.preventDefault();
+			gms.Play();
 		}
 		if (e.keyCode == 38) {
-			gms.Forward();//gms.AddTestNote();
+			event.preventDefault();
+			gms.SetBPM(200);//gms.AddTestNote();
 		}
 		if (e.keyCode == 39) {
-			gms.Forward();//gms.Backward();
+			event.preventDefault();
+			gms.Stop();//gms.Backward();
 		}
 		if (e.keyCode == 40) {
-			gms.Forward();//gms.ClearNotes();
+			event.preventDefault();
+			gms.SetBPM(400);//gms.ClearNotes();
 		}
 	}
 	</script>

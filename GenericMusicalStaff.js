@@ -19,14 +19,20 @@ if(typeof(GenericMusicalStaffInterface) == 'undefined')
 		canvas.style.backgroundColor = GenericMusicalStaffInterface.Colors.LightBlue;
 		var context = canvas.getContext('2d');
 		
-		//var _isPlaying = false;
+		var _isPlaying = false;
 		var _redraw = true;
 		var _update = true;
 		
 		//Drag vars
 		var _dragX = 0;
+		var _dragMom = 0;
+		
 		var _totalMeasures = 10;
 		var _currLoc = 0;
+		var _newCurrLoc = 0; //Used for making sure _currLoc isn't overwritten mid-draw
+		
+		var _speed; //Set in the setMeasures
+		setSpeed();
 		
 		this.Forward = function() {
 			_currLoc += 5;
@@ -38,13 +44,17 @@ if(typeof(GenericMusicalStaffInterface) == 'undefined')
 			_redraw = true;
 		};
 		
-		/*Removing for now - MRM
 		this.Play = function() {
 			if(!_isPlaying)
 			{
 				_isPlaying = true;
 				lastTime = (new Date()).getTime();
+				_dragMom = 0;
 				_redraw = true;
+			}
+			if(_currLoc == _totalMeasures * GenericMusicalStaffInterface.Var.MeasureWidth)
+			{
+				_currLoc = 0;
 			}
 		};
 		
@@ -54,12 +64,26 @@ if(typeof(GenericMusicalStaffInterface) == 'undefined')
 				_isPlaying = false;
 			}
 		};
-		*/
 		
-		this.AddNote = function(note) {
-			myNotes.push(new GenericMusicalStaffInterface.Drawables.Note(note));
+		this.SetBPM = function(bpm) {
+			this.Var.BPM = bpm;
+			setSpeed();
+		};
+		
+		this.AddNote = function(note, measure, beat) {
+			var x = GenericMusicalStaffInterface.Var.MeasureWidth * ((measure - 1) + (2 * beat - 1) / 8); //4:4 time rightnow permanently
+			var y = GenericMusicalStaffInterface.getRelativeNote(note);
+			myNotes.push(new GenericMusicalStaffInterface.Drawables.Note(note,x,y));
+			
+		//Find the location of the note via the current note
+		
+		
 			_redraw = true;
 		};
+		
+		function setSpeed() {
+			_speed = GenericMusicalStaffInterface.Var.BPM / 60 / 4 * GenericMusicalStaffInterface.Var.MeasureWidth; //constant 4 beats per measure
+		}
 		
 		var testNums1 = 0;
 		var testNums2 = 4;
@@ -69,6 +93,7 @@ if(typeof(GenericMusicalStaffInterface) == 'undefined')
 			{
 				myBars.push(new GenericMusicalStaffInterface.Drawables.StaffBar(GenericMusicalStaffInterface.Var.TopBar + j * GenericMusicalStaffInterface.Var.LineSpacing));
 			}
+			setSpeed();
 		};
 		
 		this.ClearMeasures = function() {
@@ -88,7 +113,7 @@ if(typeof(GenericMusicalStaffInterface) == 'undefined')
 		
 		this.AddTestNote = function() {
 			//generate between G5 and A4
-			
+			/*
 			var note = GenericMusicalStaffInterface.Var.Notes[testNums1] + testNums2;
 			myNotes.push(new GenericMusicalStaffInterface.Drawables.Note(note));
 			testNums1++;
@@ -97,7 +122,7 @@ if(typeof(GenericMusicalStaffInterface) == 'undefined')
 				testNums1 -= 7;
 				if(testNums2 == 4) testNums2 = 5;
 				else testNums2 = 4;
-			}
+			}*/
 			_redraw = true;
 		};
 		
@@ -108,25 +133,43 @@ if(typeof(GenericMusicalStaffInterface) == 'undefined')
 		};
 		
 		function animate() {
-			//Get elapsed time
-			var time = (new Date()).getTime();
-			var elapsedTime = time - lastTime;
-			
-			if(_redraw)
+			if(!_isPlaying && _dragX == 0 && Math.abs(_dragMom) > 1)
 			{
+				_dragMom -= _dragMom * GenericMusicalStaffInterface.Var.DragFriction;
+				_newCurrLoc += _dragMom;
+				_redraw = true;
+			}
+			
+			if(_redraw || _isPlaying)
+			{
+				//Get elapsed time
+				var time = (new Date()).getTime();
+				var elapsedTime = time - lastTime;
+				
 				//Clear
 				context.clearRect(0, 0, canvas.width, canvas.height);
+				
+				if(_isPlaying)
+					_newCurrLoc = _currLoc + elapsedTime * _speed / 1000;
+				
+				//Constrain currLoc
+				if(_newCurrLoc != _currLoc)
+				{
+					_currLoc = _newCurrLoc;
+					if(_currLoc < 0) _currLoc = 0;
+					if(_currLoc > _totalMeasures * GenericMusicalStaffInterface.Var.MeasureWidth)
+					{
+						_currLoc = _totalMeasures * GenericMusicalStaffInterface.Var.MeasureWidth;
+						_isPlaying = false;
+					}
+					_newCurrLoc = _currLoc;
+				}
 
 				//Draw the constant ones
 				for(var i = 0; i < myBars.length; i++)
-					myBars[i].draw(context);
+					myBars[i].draw(context,GenericMusicalStaffInterface.Var.CurrLocOffset - _currLoc, GenericMusicalStaffInterface.Var.CurrLocOffset+_totalMeasures * GenericMusicalStaffInterface.Var.MeasureWidth-_currLoc);
 				
 				context.save();
-				
-				//Constrain currLoc
-				if(_currLoc < 0) _currLoc = 0;
-				if(_currLoc > _totalMeasures * GenericMusicalStaffInterface.Var.MeasureWidth)
-					_currLoc = _totalMeasures * GenericMusicalStaffInterface.Var.MeasureWidth;
 				
 				//Update Camera
 				context.translate(GenericMusicalStaffInterface.Var.CurrLocOffset-_currLoc,0);
@@ -181,7 +224,8 @@ if(typeof(GenericMusicalStaffInterface) == 'undefined')
 		
 		//Dragging code
 		function drag(e){
-			_currLoc -= e.pageX - _dragX;
+			_dragMom = _dragX - e.pageX;
+			_newCurrLoc += _dragMom;
 			_dragX = e.pageX;
 			
 			_redraw = true;
@@ -192,16 +236,21 @@ if(typeof(GenericMusicalStaffInterface) == 'undefined')
 			
 			canvas.focus();
 			
-			_dragX = e.pageX;
+			if(_isPlaying)
+				_isPlaying = false;
 			
+			_dragX = e.pageX;
+		
 			canvas.onmousemove = drag;
 		}
 
 		function onUp(){
+			_dragX = 0;
 			canvas.onmousemove = null;
 		}
 
 		function onOut(){
+			_dragX = 0;
 			canvas.onmousemove = null;
 		}
 		
@@ -227,10 +276,10 @@ if(typeof(GenericMusicalStaffInterface) == 'undefined')
 	
 	GenericMusicalStaffInterface.Var = {};
 
-	GenericMusicalStaffInterface.Var.EndFadeOut = 20;
-	GenericMusicalStaffInterface.Var.StartFadeOut = 60;
-	GenericMusicalStaffInterface.Var.EndFadeIn = 840;
-	GenericMusicalStaffInterface.Var.StartFadeIn = 880;
+	GenericMusicalStaffInterface.Var.EndFadeOut = 0;
+	GenericMusicalStaffInterface.Var.StartFadeOut = 0;
+	GenericMusicalStaffInterface.Var.EndFadeIn = 900;
+	GenericMusicalStaffInterface.Var.StartFadeIn = 900;
 	GenericMusicalStaffInterface.Var.BPM = 200; //Currently has nothing to do with actual BPM
 	GenericMusicalStaffInterface.Var.NoteWidth = 10;
 	GenericMusicalStaffInterface.Var.NoteHeightToWidth = 0.75;
@@ -244,7 +293,9 @@ if(typeof(GenericMusicalStaffInterface) == 'undefined')
 	GenericMusicalStaffInterface.Var.LineSpacing = 16;
 	GenericMusicalStaffInterface.Var.StartFromTop = 0.20;
 	GenericMusicalStaffInterface.Var.ExtraLedgerLineLength = 10;
-	GenericMusicalStaffInterface.Var.CurrLocOffset = 200;
+	GenericMusicalStaffInterface.Var.CurrLocOffset = 200
+	
+	GenericMusicalStaffInterface.Var.DragFriction = 0.1;
 
 	//Doing colors for the gradient for the lines!
 	//Taken out because context is needed to make these colors
@@ -355,18 +406,20 @@ if(typeof(GenericMusicalStaffInterface) == 'undefined')
 
 	GenericMusicalStaffInterface.Drawables.StaffBar.prototype = new GenericMusicalStaffInterface.Drawables.IDrawable();
 
-	GenericMusicalStaffInterface.Drawables.StaffBar.prototype.draw = function(context) {
+	GenericMusicalStaffInterface.Drawables.StaffBar.prototype.draw = function(context, min, max) {
 		context.fillStyle = this.color;
-		context.fillRect(GenericMusicalStaffInterface.Var.EndFadeOut, this.y - GenericMusicalStaffInterface.Var.LineWidth / 2, GenericMusicalStaffInterface.Var.StartFadeIn - GenericMusicalStaffInterface.Var.EndFadeOut, GenericMusicalStaffInterface.Var.LineWidth);
+		var start = Math.max(GenericMusicalStaffInterface.Var.EndFadeOut, min);
+		var end = Math.min(GenericMusicalStaffInterface.Var.StartFadeIn, max);
+		context.fillRect(start, this.y - GenericMusicalStaffInterface.Var.LineWidth / 2, end - start, GenericMusicalStaffInterface.Var.LineWidth);
 	}
 
 	GenericMusicalStaffInterface.Var.Notes = ['A','B','C','D','E','F','G'];
 
-	GenericMusicalStaffInterface.Drawables.Note = function (newType) {
+	GenericMusicalStaffInterface.Drawables.Note = function (newType,x,y) {
 		this.type = newType.toUpperCase();
 		
-		//Find the location of the note via the current note
-		this.y = GenericMusicalStaffInterface.getRelativeNote(this.type);
+		this.x = x;
+		this.y = y;
 		
 		this.LedgerLines = GenericMusicalStaffInterface.createLedgerLines(this.x, this.type);
 		
@@ -467,6 +520,10 @@ if(typeof(GenericMusicalStaffInterface) == 'undefined')
 
 	GenericMusicalStaffInterface.Drawables.Note.prototype = new GenericMusicalStaffInterface.Drawables.RhythmicDrawable();
 
+	GenericMusicalStaffInterface.Drawables.Note.prototype.measure = 1;
+
+	GenericMusicalStaffInterface.Drawables.Note.prototype.beat = 1;
+	
 	GenericMusicalStaffInterface.Drawables.Note.prototype.update = function(elapsedTime) {
 		// copied from RhythmicDrawable
 		var newX = GenericMusicalStaffInterface.Var.BPM * (elapsedTime) / 1000;
