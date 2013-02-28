@@ -9,4 +9,8 @@ For lack of better place to put it, I'll put some of my plans here.
 
 Generic Musical Staff Object
 --------------
-I want everything inside this object to be toggle-able. If I want to display only the notes (no staff lines), I should be able to do that. If I want to display everything, then that should be possible. These staffs should be able to be paused, played, dragged-through, cleared, loaded from MusicXML, everything, handled from outside the object. The Generic Musical Staff object shall not have any logic, only the capability to be dynamic. Other scripts will have to be written to use the Generic Musical Staff properly.
+I want everything inside this object to be toggle-able. If I want to display only the notes (no staff lines), I should be able to do that. If I want to display everything, then that should be possible. These staffs should be able to be paused, played, dragged-through, cleared, loaded from MusicXML, everything, handled from outside the object. The Generic Musical Staff object shall not have any logic, only the capability to be dynamic (buzzword!). Other scripts will have to be written to use the Generic Musical Staff properly.
+
+Demo
+---------------
+I keep the latest test version of the staff in a gh-pages branch, accessible through immattmchaney.github.com/MusicRepresentation
